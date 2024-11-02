@@ -1,3 +1,3 @@
 export function DiscoverCompilers() {
-  return Promise.resolve('c++');
+    return Promise.resolve("c++");
 }

@@ -1,3 +1,3 @@
-import {DiscoverCompilers} from './discovery/discover';
+import { DiscoverCompilers } from "./discovery/discover";
 
 DiscoverCompilers().then(console.log);
