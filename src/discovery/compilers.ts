@@ -1,46 +1,46 @@
-import { spawn } from "node:child_process";
 import { promises as fs } from "node:fs";
 
-enum CompilerFamily {
-    Unknown = "UNKNOWN",
-    GCC = "GCC",
-    Clang = "Clang",
-}
+import { CompilerFamily, Language } from "./types";
+import { spawn_process } from "./helpers";
 
 const CompilerDefaults = [
-    { executable: "c++", family: CompilerFamily.Unknown },
-    { executable: "gcc", family: CompilerFamily.GCC },
-    { executable: "clang", family: CompilerFamily.Clang },
-    { executable: "g++", family: CompilerFamily.GCC },
-    { executable: "clang++", family: CompilerFamily.Clang },
+    { executable: "cc", family: CompilerFamily.Unknown, language: Language.C },
+    {
+        executable: "c++",
+        family: CompilerFamily.Unknown,
+        language: Language.Cpp,
+    },
+    { executable: "gcc", family: CompilerFamily.GCC, language: Language.C },
+    { executable: "clang", family: CompilerFamily.Clang, language: Language.C },
+    { executable: "g++", family: CompilerFamily.GCC, language: Language.Cpp },
+    {
+        executable: "clang++",
+        family: CompilerFamily.Clang,
+        language: Language.Cpp,
+    },
 ];
 
 type CompilerDefaultType = (typeof CompilerDefaults)[number];
 
 const CompileVersionArgs = {
-    [CompilerFamily.GCC]: ["--version"],
-    [CompilerFamily.Clang]: ["--version"],
-    [CompilerFamily.Unknown]: ["--version"],
+    [CompilerFamily.GCC]: ["-dumpfullversion", "-dumpversion"],
+    [CompilerFamily.Clang]: ["-dumpfullversion", "-dumpversion"],
+    [CompilerFamily.Unknown]: ["-dumpfullversion", "-dumpversion"],
 };
 
-function spawn_process([executable, ...args]: string[]) {
-    return new Promise<{ code: number; output: string }>((resolve) => {
-        const child = spawn(executable, args);
-        let output: Buffer | null = null;
-        child.stdout.on("data", (data) => {
-            if (output === null) {
-                output = data;
-            } else {
-                output = Buffer.concat([output, data]);
-            }
-        });
-        child.on("close", (code) =>
-            resolve({ code, output: output.toString().trim() }),
-        );
-    });
-}
-
 export default class Compilers {
+    discover = async (
+        compiler: string,
+        family: CompilerFamily = CompilerFamily.Unknown,
+        language: Language = Language.Cpp,
+    ) => {
+        return await this.checkCompiler({
+            executable: compiler,
+            family,
+            language,
+        });
+    };
+
     list = async () => {
         const resolved = await Promise.all(
             CompilerDefaults.map(this.checkCompiler),
@@ -51,6 +51,7 @@ export default class Compilers {
     private checkCompiler = async ({
         executable,
         family,
+        language,
     }: CompilerDefaultType) => {
         const { code, output } = await spawn_process(["which", executable]);
         if (code !== 0) {
@@ -62,7 +63,13 @@ export default class Compilers {
         }
         try {
             const version = await this.versionCache.get(realpath);
-            return { command: executable, path: realpath, version };
+            return {
+                command: executable,
+                path: realpath,
+                version,
+                family,
+                language,
+            };
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (e) {
             return null;
