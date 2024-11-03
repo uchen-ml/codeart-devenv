@@ -18,4 +18,9 @@ export default [
       'eslint.config.mjs',
     ],
   },
+  {
+    rules: {
+      'object-curly-spacing': ['error', 'always'],
+    },
+  },
 ];
