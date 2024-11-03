@@ -1,7 +1,7 @@
 import yargs from "yargs";
 
 import { hideBin } from "yargs/helpers";
-import { listCompilers } from "./discovery/compilers";
+import Compilers from "./discovery/compilers";
 
 // Init yargs and introduce the command ls
 yargs(hideBin(process.argv))
@@ -10,7 +10,8 @@ yargs(hideBin(process.argv))
         "List all compilers",
         () => {},
         async () => {
-            console.log(await listCompilers());
+            const compilers = new Compilers();
+            console.log(await compilers.list());
         },
     )
     .parse();

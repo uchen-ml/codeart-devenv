@@ -20,22 +20,43 @@ function spawn_process([executable, ...args]: string[]) {
     });
 }
 
-async function checkCompiler(compiler: string) {
-    const { code, output } = await spawn_process(["which", compiler]);
-    if (code !== 0) {
-        return null;
-    }
-    const realpath = await fs.realpath(output);
-    const { code: versionCode, output: version } = await spawn_process([
-        realpath,
-        "--version",
-    ]);
-    if (versionCode !== 0) {
-        return null;
-    }
-    return { command: compiler, path: realpath, version };
-}
+export default class Compilers {
+    list = async () => {
+        const resolved = await Promise.all(compilers.map(this.checkCompiler));
+        return resolved.filter((compiler) => compiler !== null);
+    };
 
-export async function listCompilers() {
-    return await Promise.all(compilers.map(checkCompiler));
+    private checkCompiler = async (compiler: string) => {
+        const { code, output } = await spawn_process(["which", compiler]);
+        if (code !== 0) {
+            return null;
+        }
+        const realpath = await fs.realpath(output);
+        if (!this.versionCache.has(realpath)) {
+            this.versionCache.set(realpath, this.getVersion(realpath));
+        }
+        try {
+            const version = await this.versionCache.get(realpath);
+            return { command: compiler, path: realpath, version };
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (e) {
+            return null;
+        }
+    };
+
+    private getVersion = async (executable: string) => {
+        const { code: versionCode, output: version } = await spawn_process([
+            executable,
+            "--version",
+        ]);
+        if (versionCode !== 0) {
+            console.error(
+                `Failed to get version for ${executable}: ${version}`,
+            );
+            return null;
+        }
+        return version;
+    };
+
+    private versionCache = new Map<string, Promise<string>>();
 }
