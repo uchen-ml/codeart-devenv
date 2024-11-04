@@ -1,7 +1,7 @@
-import { spawn_process } from "./helpers";
-import { CompilerFamily, Language } from "./types";
+import { spawn_process } from "./helpers.js";
+import { CompilerFamily, Language } from "./types.js";
 
-function getArguments(family: CompilerFamily, language: Language) {
+function getArguments(_family: CompilerFamily, language: Language) {
     return ["-dM", "-E", "-x", language == Language.C ? "c" : "c++", "-"];
 }
 
@@ -28,7 +28,7 @@ class CompilerDefines {
             executable,
             ...getArguments(family, language),
         ]);
-        if (code !== 0) {
+        if (code !== 0 || !output) {
             throw new Error(
                 `Failed to query compiler ${executable}: ${output}`,
             );

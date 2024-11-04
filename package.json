@@ -3,6 +3,7 @@
     "version": "0.0.1",
     "description": "Utility to discover C++ development environment",
     "main": "build/src/main.js",
+    "type": "module",
     "repository": {
         "type": "git",
         "url": "https://github.com/uchen-ml/codeart-devenv"
@@ -39,6 +40,7 @@
         "typescript-eslint": "^8.12.2"
     },
     "dependencies": {
-        "yargs": "^17.7.2"
+        "yargs": "^17.7.2",
+        "zod": "^3.23.8"
     }
 }
