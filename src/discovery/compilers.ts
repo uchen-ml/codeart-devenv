@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 
-import { CompilerFamily, Language } from "./types";
-import { spawn_process } from "./helpers";
+import { CompilerFamily, Language } from "./types.js";
+import { spawn_process } from "./helpers.js";
 
 const CompilerDefaults = [
     { executable: "cc", family: CompilerFamily.Unknown, language: Language.C },
@@ -54,7 +54,7 @@ export default class Compilers {
         language,
     }: CompilerDefaultType) => {
         const { code, output } = await spawn_process(["which", executable]);
-        if (code !== 0) {
+        if (code !== 0 || !output) {
             return null;
         }
         const realpath = await fs.realpath(output);
@@ -76,12 +76,15 @@ export default class Compilers {
         }
     };
 
-    private getVersion = async (executable: string, family: CompilerFamily) => {
+    private getVersion = async (
+        executable: string,
+        family: CompilerFamily,
+    ): Promise<string | null> => {
         const { code: versionCode, output: version } = await spawn_process([
             executable,
             ...CompileVersionArgs[family],
         ]);
-        if (versionCode !== 0) {
+        if (versionCode !== 0 || !version) {
             console.error(
                 `Failed to get version for ${executable}: ${version}`,
             );
@@ -90,5 +93,5 @@ export default class Compilers {
         return version;
     };
 
-    private versionCache = new Map<string, Promise<string>>();
+    private versionCache = new Map<string, Promise<string | null>>();
 }
