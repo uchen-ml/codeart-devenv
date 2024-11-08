@@ -23,10 +23,19 @@ const CompilerDefaults = [
 type CompilerDefaultType = (typeof CompilerDefaults)[number];
 
 const CompileVersionArgs = {
-    [CompilerFamily.GCC]: ["-dumpfullversion", "-dumpversion"],
-    [CompilerFamily.Clang]: ["-dumpfullversion", "-dumpversion"],
-    [CompilerFamily.Unknown]: ["-dumpfullversion", "-dumpversion"],
+    [CompilerFamily.GCC]: ["--version"],
+    [CompilerFamily.Clang]: ["--version"],
+    [CompilerFamily.Unknown]: ["--version"],
 };
+
+export function getCompilerFamilyFromVersion(version: string | null) {
+    if (!version) {
+        return null;
+    }
+    return version.split("\n")[0].toLowerCase().match(/clang/)
+        ? CompilerFamily.Clang
+        : CompilerFamily.GCC;
+}
 
 export default class Compilers {
     discover = async (
@@ -62,12 +71,12 @@ export default class Compilers {
             this.versionCache.set(realpath, this.getVersion(realpath, family));
         }
         try {
-            const version = await this.versionCache.get(realpath);
+            const version = await this.versionCache.get(realpath)!;
             return {
                 command: executable,
                 path: realpath,
                 version,
-                family,
+                family: getCompilerFamilyFromVersion(version) ?? family,
                 language,
             };
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -80,14 +89,13 @@ export default class Compilers {
         executable: string,
         family: CompilerFamily,
     ): Promise<string | null> => {
-        const { code: versionCode, output: version } = await spawn_process([
-            executable,
-            ...CompileVersionArgs[family],
-        ]);
+        const {
+            code: versionCode,
+            output: version,
+            error,
+        } = await spawn_process([executable, ...CompileVersionArgs[family]]);
         if (versionCode !== 0 || !version) {
-            console.error(
-                `Failed to get version for ${executable}: ${version}`,
-            );
+            console.error(`Failed to get version for ${executable}: ${error}`);
             return null;
         }
         return version;
