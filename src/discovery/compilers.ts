@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 
-import { CompilerFamily, Language } from "./types.js";
-import { spawn_process } from "./helpers.js";
+import { CompilerFamily, Language } from "./types";
+import { spawn_process } from "./helpers";
 
 const CompilerDefaults = [
     { executable: "cc", family: CompilerFamily.Unknown, language: Language.C },
