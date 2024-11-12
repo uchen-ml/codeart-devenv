@@ -2,7 +2,7 @@
     "name": "@uchen/codeart-devenv",
     "version": "0.0.1",
     "description": "Utility to discover C++ development environment",
-    "main": "build/src/main.js",
+    "main": "build/main.js",
     "type": "module",
     "repository": {
         "type": "git",
@@ -11,9 +11,11 @@
     "scripts": {
         "build": "tsc",
         "build:watch": "tsc -w",
-        "start": "node build/src/main.js",
+        "start": "node build/main.js",
         "dev": "ts-node src/main.ts",
         "dev:watch": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/main.ts",
+        "lint": "eslint",
+        "lint:fix": "eslint --fix",
         "test": "jest",
         "test:watch": "jest --watch"
     },

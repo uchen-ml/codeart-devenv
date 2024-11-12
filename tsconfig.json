@@ -21,7 +21,7 @@
     "noFallthroughCasesInSwitch": true,
     "downlevelIteration": true,
     "isolatedModules": true,
-    "outDir": "build"
+    "outDir": "build",
   },
   "include": [
     "src/**/*.ts"

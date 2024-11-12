@@ -1,9 +1,9 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-import Compilers from "./discovery/compilers";
-import Defines from "./discovery/defines";
-import CompilationDatabases from "./discovery/compilation_databases";
+import Compilers from "./discovery/compilers.js";
+import Defines from "./discovery/defines.js";
+import CompilationDatabases from "./discovery/compilation_databases.js";
 
 async function getCompilerDefines(compiler: string) {
     const c = await new Compilers().discover(compiler);

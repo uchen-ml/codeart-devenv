@@ -1,32 +1,16 @@
-import { promises as fs } from "node:fs";
-
-import { CompilerFamily, Language } from "./types";
-import { spawn_process } from "./helpers";
+import { CompilerFamily, Language } from "./types.js";
+import { realPath, spawnProcess } from "./helpers.js";
 
 const CompilerDefaults = [
-    { executable: "cc", family: CompilerFamily.Unknown, language: Language.C },
-    {
-        executable: "c++",
-        family: CompilerFamily.Unknown,
-        language: Language.Cpp,
-    },
-    { executable: "gcc", family: CompilerFamily.GCC, language: Language.C },
-    { executable: "clang", family: CompilerFamily.Clang, language: Language.C },
-    { executable: "g++", family: CompilerFamily.GCC, language: Language.Cpp },
-    {
-        executable: "clang++",
-        family: CompilerFamily.Clang,
-        language: Language.Cpp,
-    },
+    { executable: "cc", language: Language.C },
+    { executable: "c++", language: Language.Cpp },
+    { executable: "gcc", language: Language.C },
+    { executable: "clang", language: Language.C },
+    { executable: "g++", language: Language.Cpp },
+    { executable: "clang++", language: Language.Cpp },
 ];
 
 type CompilerDefaultType = (typeof CompilerDefaults)[number];
-
-const CompileVersionArgs = {
-    [CompilerFamily.GCC]: ["--version"],
-    [CompilerFamily.Clang]: ["--version"],
-    [CompilerFamily.Unknown]: ["--version"],
-};
 
 export function getCompilerFamilyFromVersion(version: string | null) {
     if (!version) {
@@ -38,14 +22,14 @@ export function getCompilerFamilyFromVersion(version: string | null) {
 }
 
 export default class Compilers {
-    discover = async (
-        compiler: string,
-        family: CompilerFamily = CompilerFamily.Unknown,
-        language: Language = Language.Cpp,
-    ) => {
+    constructor(
+        private readonly spawner = spawnProcess,
+        private readonly path_resolver = realPath,
+    ) {}
+
+    discover = async (compiler: string, language: Language = Language.Cpp) => {
         return await this.checkCompiler({
             executable: compiler,
-            family,
             language,
         });
     };
@@ -59,24 +43,25 @@ export default class Compilers {
 
     private checkCompiler = async ({
         executable,
-        family,
         language,
     }: CompilerDefaultType) => {
-        const { code, output } = await spawn_process(["which", executable]);
-        if (code !== 0 || !output) {
-            return null;
+        const realpath = await this.path_resolver(executable);
+        if (!realpath) {
+            throw new Error(`Could not find ${executable}`);
         }
-        const realpath = await fs.realpath(output);
         if (!this.versionCache.has(realpath)) {
-            this.versionCache.set(realpath, this.getVersion(realpath, family));
+            this.versionCache.set(realpath, this.getVersion(realpath));
         }
         try {
             const version = await this.versionCache.get(realpath)!;
+            console.log(1, version);
             return {
                 command: executable,
                 path: realpath,
                 version,
-                family: getCompilerFamilyFromVersion(version) ?? family,
+                family:
+                    getCompilerFamilyFromVersion(version) ??
+                    CompilerFamily.Unknown,
                 language,
             };
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -85,15 +70,12 @@ export default class Compilers {
         }
     };
 
-    private getVersion = async (
-        executable: string,
-        family: CompilerFamily,
-    ): Promise<string | null> => {
+    private getVersion = async (executable: string): Promise<string | null> => {
         const {
             code: versionCode,
             output: version,
             error,
-        } = await spawn_process([executable, ...CompileVersionArgs[family]]);
+        } = await this.spawner([executable, "--version"]);
         if (versionCode !== 0 || !version) {
             console.error(`Failed to get version for ${executable}: ${error}`);
             return null;

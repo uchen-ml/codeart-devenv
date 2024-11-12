@@ -1,5 +1,5 @@
-import { spawn_process } from "./helpers";
-import { CompilerFamily, Language } from "./types";
+import { spawnProcess } from "./helpers.js";
+import { CompilerFamily, Language } from "./types.js";
 
 function getArguments(_family: CompilerFamily, language: Language) {
     return ["-dM", "-E", "-x", language == Language.C ? "c" : "c++", "-"];
@@ -23,8 +23,9 @@ class CompilerDefines {
         executable: string,
         family: CompilerFamily,
         language: Language,
+        spawner = spawnProcess,
     ) => {
-        const { code, output } = await spawn_process([
+        const { code, output } = await spawner([
             executable,
             ...getArguments(family, language),
         ]);
