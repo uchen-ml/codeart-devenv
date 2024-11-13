@@ -3,7 +3,7 @@
     "version": "0.0.1",
     "description": "Utility to discover C++ development environment",
     "main": "build/main.js",
-    "type": "module",
+    "type": "commonjs",
     "repository": {
         "type": "git",
         "url": "https://github.com/uchen-ml/codeart-devenv"

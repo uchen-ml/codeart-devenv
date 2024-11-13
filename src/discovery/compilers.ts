@@ -1,5 +1,5 @@
-import { CompilerFamily, Language } from "./types.js";
-import { realPath, spawnProcess } from "./helpers.js";
+import { CompilerFamily, Language } from "./types";
+import { realPath, spawnProcess } from "./helpers";
 
 const CompilerDefaults = [
     { executable: "cc", language: Language.C },

@@ -1,5 +1,5 @@
-import { spawnProcess } from "./helpers.js";
-import { CompilerFamily, Language } from "./types.js";
+import { spawnProcess } from "./helpers";
+import { CompilerFamily, Language } from "./types";
 
 function getArguments(_family: CompilerFamily, language: Language) {
     return ["-dM", "-E", "-x", language == Language.C ? "c" : "c++", "-"];
