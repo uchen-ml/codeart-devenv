@@ -1,5 +1,7 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import fs from "fs/promises";
+import path from "path";
 
 import Compilers from "./discovery/compilers";
 import CompilationDatabases from "./discovery/compilation_databases";
@@ -54,6 +56,34 @@ yargs(hideBin(process.argv))
                 process.exit(1);
             }
             console.log((await new CompilationDatabases().read(path)).stats());
+        },
+    )
+    .command(
+        "info <file>",
+        "Get information about a file",
+        (yarg) =>
+            yarg
+                .positional("file", {
+                    type: "string",
+                    required: true,
+                    description: "Path to the file",
+                })
+                .option("db", {
+                    type: "string",
+                    description: "Path to the compilation database JSON file",
+                }),
+        async ({ db, file }) => {
+            if (!file) {
+                console.error("File is required");
+                process.exit(1);
+            }
+            try {
+                await fs.stat(file);
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            } catch (e) {
+                console.error(`File ${file} not found`);
+                process.exit(1);
+            }
         },
     )
     .parse();
