@@ -4,8 +4,7 @@
       "es5",
       "es6",
       "es7",
-      "esnext",
-      "dom"
+      "esnext"
     ],
     "target": "ESNext",
     "esModuleInterop": true,
@@ -22,7 +21,16 @@
     "downlevelIteration": true,
     "isolatedModules": true,
     "outDir": "build",
-    "removeComments": false,
+    "types": [
+      "node",
+      "jest"
+    ],
+    /* generate d.ts */
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "declarationDir": "types",
+    "removeComments": false
   },
   "include": [
     "src/**/*.ts"
